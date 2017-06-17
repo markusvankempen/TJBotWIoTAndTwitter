@@ -1,0 +1,326 @@
+[
+    {
+        "id": "c37731be.42b07",
+        "type": "twitter in",
+        "z": "64f1b94a.fa57f",
+        "twitter": "",
+        "tags": "WatsonIoT",
+        "user": "true",
+        "name": "CheckforIBM",
+        "topic": "tweets",
+        "inputs": 0,
+        "x": 171,
+        "y": 225,
+        "wires": [
+            [
+                "8ebc3296.2d1348",
+                "713a997e.064e"
+            ]
+        ]
+    },
+    {
+        "id": "713a997e.064e",
+        "type": "watson-tone-analyzer-v3",
+        "z": "64f1b94a.fa57f",
+        "name": "Analyzse",
+        "tones": "emotion",
+        "sentences": "true",
+        "contentType": "false",
+        "tone-method": "generalTone",
+        "x": 360,
+        "y": 172.75,
+        "wires": [
+            [
+                "cb23c913.3821b",
+                "690ccdac.db9c4c",
+                "8f0eeb31.6dfc4"
+            ]
+        ]
+    },
+    {
+        "id": "8ebc3296.2d1348",
+        "type": "debug",
+        "z": "64f1b94a.fa57f",
+        "name": "",
+        "active": false,
+        "console": "false",
+        "complete": "false",
+        "x": 374,
+        "y": 224.5,
+        "wires": []
+    },
+    {
+        "id": "61a65804.150e68",
+        "type": "debug",
+        "z": "64f1b94a.fa57f",
+        "name": "Tcat",
+        "active": false,
+        "console": "true",
+        "complete": "true",
+        "x": 765.5,
+        "y": 168,
+        "wires": []
+    },
+    {
+        "id": "cb23c913.3821b",
+        "type": "function",
+        "z": "64f1b94a.fa57f",
+        "name": "tone_categories",
+        "func": "\nreturn msg.payload =msg.response.document_tone.tone_categories;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 587,
+        "y": 167.75,
+        "wires": [
+            [
+                "61a65804.150e68"
+            ]
+        ]
+    },
+    {
+        "id": "690ccdac.db9c4c",
+        "type": "function",
+        "z": "64f1b94a.fa57f",
+        "name": "HighScore",
+        "func": "var emotions = [];\nemotions = msg.response.document_tone.tone_categories\n                .filter(function(c){\n                    if (c.category_id == \"emotion_tone\")\n                    {return c; }\n                    })[0].tones;\n                    \n//rename tone_id to topic\nvar myscore =  0;     \nvar mynewmsg ={};\n//msg.payload = emotions;\nfor (var i=0; i<emotions.length; i++) {\n\n    if(emotions[i].score > myscore)\n    {\n        msg.payload = emotions[i].score;\n        msg.topic = emotions[i].tone_name;\n        myscore = emotions[i].score;\n    }\n //   node.send(msg);\n}\nmynewmsg = msg;\nreturn mynewmsg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 576.5,
+        "y": 209,
+        "wires": [
+            [
+                "249f8ce6.31150c",
+                "2be97d90.37e2b2"
+            ]
+        ]
+    },
+    {
+        "id": "249f8ce6.31150c",
+        "type": "debug",
+        "z": "64f1b94a.fa57f",
+        "name": "Score",
+        "active": true,
+        "console": "true",
+        "complete": "payload",
+        "x": 768.5,
+        "y": 211.5555419921875,
+        "wires": []
+    },
+    {
+        "id": "30afbd8a.4b6b6a",
+        "type": "inject",
+        "z": "64f1b94a.fa57f",
+        "name": "Test",
+        "topic": "",
+        "payload": "Hello ",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "x": 170,
+        "y": 171.25,
+        "wires": [
+            [
+                "713a997e.064e"
+            ]
+        ]
+    },
+    {
+        "id": "7821ec8a.15f5b4",
+        "type": "debug",
+        "z": "64f1b94a.fa57f",
+        "name": "AnaReport",
+        "active": false,
+        "console": "true",
+        "complete": "true",
+        "x": 787.5,
+        "y": 129,
+        "wires": []
+    },
+    {
+        "id": "8f0eeb31.6dfc4",
+        "type": "function",
+        "z": "64f1b94a.fa57f",
+        "name": "Ananlyser response",
+        "func": "\nreturn msg.payload =msg.response;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 598.5,
+        "y": 129,
+        "wires": [
+            [
+                "7821ec8a.15f5b4"
+            ]
+        ]
+    },
+    {
+        "id": "5102fe6f.fe02f8",
+        "type": "function",
+        "z": "64f1b94a.fa57f",
+        "name": "SetColorYellow-Joy",
+        "func": "\n// Counter to select from array.\nvar counter1 = context.get('counter1')||0;\ncounter1 = counter1+1;\nif(counter1 > 999) counter1 = 0;\ncontext.set('counter1',counter1);\n\n// Create MQTT message in JSON\nvar msg = {\n  payload:\n    {\n      d:{\n        \"action\" : \"ledSET\", \n        \"color\"  : 0xFFFF00, //GRB //yellow\n        \"value\"  : \"yellow\",\n        \"counter\": counter1\n        }\n      }\n    \n  \n};\nmsg.eventOrCommandType = \"ledSET\";\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 799.5,
+        "y": 257,
+        "wires": [
+            [
+                "46ce1535.6d8cc4",
+                "a321dccb.65935"
+            ]
+        ]
+    },
+    {
+        "id": "2be97d90.37e2b2",
+        "type": "switch",
+        "z": "64f1b94a.fa57f",
+        "name": "SelectColor",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "Joy",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "Fear",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "Sadness",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "Anger",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "outputs": 5,
+        "x": 570,
+        "y": 280.75,
+        "wires": [
+            [
+                "5102fe6f.fe02f8"
+            ],
+            [
+                "eb4efc4c.d61c2"
+            ],
+            [
+                "f1419caf.502f58"
+            ],
+            [
+                "f5b6b42c.a3e948"
+            ],
+            [
+                "b691b073.e10fe"
+            ]
+        ]
+    },
+    {
+        "id": "eb4efc4c.d61c2",
+        "type": "function",
+        "z": "64f1b94a.fa57f",
+        "name": "SetColorRed-Fear",
+        "func": "\n// Counter to select from array.\nvar counter1 = context.get('counter1')||0;\ncounter1 = counter1+1;\nif(counter1 > 999) counter1 = 0;\ncontext.set('counter1',counter1);\n\n// Create MQTT message in JSON\nmsg = {\n  payload:\n    {\n      d:{\n        \"action\" : \"ledRED\", \n        \"counter\" : counter1\n      }\n    }\n  \n};\nmsg.eventOrCommandType = \"ledRED\";\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 801.5,
+        "y": 296,
+        "wires": [
+            [
+                "46ce1535.6d8cc4"
+            ]
+        ]
+    },
+    {
+        "id": "f5b6b42c.a3e948",
+        "type": "function",
+        "z": "64f1b94a.fa57f",
+        "name": "SetColorGreen-Anger",
+        "func": "\nvar counter1 = context.get('counter1')||0;\ncounter1 = counter1+1;\nif(counter1 > 999) counter1 = 0;\ncontext.set('counter1',counter1);\n\n// Create MQTT message in JSON\nmsg = {\n  payload: \n    {\n      d:{\n        \"action\" : \"ledGREEN\", \n             \"counter\" : counter1\n        // not use old for testing\n  // //   \"increment\": 0,\n       // \"interval\": 250,\n    //    \"stopat\": 1501,\n      //  \"motorSpin\": 1800,\n        //\"turn\" : 500,\n//        \"temp\" : temp1[counter1],\n  //      \"humidity\" : humidity1[counter1],\n    //    \"location\" :\n      //  {\n        //  \"longitude\" : longitude1,\n         // \"latitude\" : latitude1\n    //    },\n      }\n    }\n  \n};\nmsg.eventOrCommandType = \"ledGREEN\";\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 808.5,
+        "y": 371,
+        "wires": [
+            [
+                "46ce1535.6d8cc4"
+            ]
+        ]
+    },
+    {
+        "id": "f1419caf.502f58",
+        "type": "function",
+        "z": "64f1b94a.fa57f",
+        "name": "SetColorBlue-Sadness",
+        "func": "\nvar counter1 = context.get('counter1')||0;\ncounter1 = counter1+1;\nif(counter1 > 999) counter1 = 0;\ncontext.set('counter1',counter1);\n\n// Create MQTT message in JSON\nvar msg = {\n  payload: \n    {\n      d:{\n        \"action\" : \"ledBLUE\", \n       \"counter\" : counter1\n      }\n    }\n  \n};\nmsg.eventOrCommandType = \"ledBLUE\";\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 806.5,
+        "y": 334,
+        "wires": [
+            [
+                "46ce1535.6d8cc4"
+            ]
+        ]
+    },
+    {
+        "id": "b691b073.e10fe",
+        "type": "function",
+        "z": "64f1b94a.fa57f",
+        "name": "SetColorOtherOff",
+        "func": "var newmsg = {\"cmd\" : \"setcolor\",\n\"mode\":\"\",\n\"speed\":\"\",\n\"rr\" : 0,\n\"gg\" : 0,\n\"bb\" : 0,\n\"tone\" : msg.topic,   \n\"score\" : msg.payload\n}\nmsg.payload=newmsg ;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 798.5,
+        "y": 406,
+        "wires": [
+            [
+                "46ce1535.6d8cc4"
+            ]
+        ]
+    },
+    {
+        "id": "46ce1535.6d8cc4",
+        "type": "ibmiot out",
+        "z": "64f1b94a.fa57f",
+        "authentication": "boundService",
+        "apiKey": "",
+        "outputType": "cmd",
+        "deviceId": "tjbot",
+        "deviceType": "tjbot",
+        "eventCommandType": "turnRight",
+        "format": "json",
+        "data": "temp:10",
+        "qos": "",
+        "name": "Send CMD to TJBot",
+        "service": "registered",
+        "x": 1065,
+        "y": 334,
+        "wires": []
+    },
+    {
+        "id": "a321dccb.65935",
+        "type": "function",
+        "z": "64f1b94a.fa57f",
+        "name": "ArmWAVE",
+        "func": "\n// Counter to select from array.\nvar counter1 = context.get('counter1')||0;\ncounter1 = counter1+1;\nif(counter1 > 999) counter1 = 0;\ncontext.set('counter1',counter1);\n\n// Create MQTT message in JSON\nmsg = {\n  payload: \n    {\n      d:{\n          \"action\" : \"armWAVE\",  \n          \"counter\" : counter1\n      }\n    }\n  \n};\nmsg.eventOrCommandType = \"armWAVE\";\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1030,
+        "y": 219,
+        "wires": [
+            [
+                "46ce1535.6d8cc4"
+            ]
+        ]
+    }
+]
